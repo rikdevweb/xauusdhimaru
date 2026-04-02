@@ -1,1 +1,44 @@
 
+const TelegramBot = require('node-telegram-bot-api');
+const express = require('express');
+
+const TOKEN = "8742356964:AAGcc1za904im9XhHdLbbWyup2vZ8MUlAIs";
+const bot = new TelegramBot(TOKEN, { polling: true });
+
+const app = express();
+app.use(express.json());
+
+let users = [];
+let currentTrend = "NONE";
+let lastSignal = "NONE";
+
+// START
+bot.onText(/\/start/, (msg) => {
+  const id = msg.chat.id;
+  if (!users.includes(id)) users.push(id);
+
+  bot.sendMessage(id, "💀 BOT AKTIF\nMenunggu signal...");
+});
+
+// TERIMA SIGNAL
+app.post('/signal', (req, res) => {
+  const msg = req.body.message || "";
+
+  if (msg.includes("BUY")) lastSignal = "BUY";
+  if (msg.includes("SELL")) lastSignal = "SELL";
+
+  users.forEach(id => {
+    bot.sendMessage(id, `💀 SIGNAL: ${lastSignal}`);
+  });
+
+  res.send("OK");
+});
+
+// API WEBSITE
+app.get('/data', (req, res) => {
+  res.json({
+    signal: lastSignal
+  });
+});
+
+app.listen(3000, () => console.log("BOT JALAN"));
